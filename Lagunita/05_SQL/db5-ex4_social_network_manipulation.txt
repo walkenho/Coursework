@@ -1,0 +1,33 @@
+Q1: It's time for the seniors to graduate. Remove all 12th graders from Highschooler. 
+A1: delete from highschooler where grade = 12;
+
+Q2: If two students A and B are friends, and A likes B but not vice-versa, remove the Likes tuple. 
+A2: delete from likes 
+    where exists (select * from friend 
+                   where likes.id1 = friend.id1 
+                         and likes.id2 = friend.id2        
+                         and not exists (select * from likes l2 
+                                                  where likes.id1 = l2.id2                  
+                                                        and likes.id2 = l2.id1));
+
+Q3: For all cases where A is friends with B, and B is friends with C, add a
+    new friendship for the pair A and C. Do not add duplicate friendships,
+    friendships that already exist, or friendships with oneself. (This one is a
+    bit challenging; congratulations if you get it right.)
+A3:
+insert into friend
+select distinct AB.id1, BC.id2 from friend AB join friend BC 
+       where AB.id2 = BC.id1 
+             and AB.id1 < BC.id2 
+             and not exists (select * from friend friendcheck
+                                where AB.id1 = friendcheck.id1 
+                                      and BC.id2 = friendcheck.id2)
+union 
+select distinct BC.id2, AB.id1 from friend AB join friend BC 
+       where AB.id2 = BC.id1 
+             and AB.id1 < BC.id2 
+             and not exists (select * from friend friendcheck
+                                where AB.id1 = friendcheck.id1 
+                                      and BC.id2 = friendcheck.id2)
+(The trick is to realize that all friendschips have to be inserted twice, once
+in each order!)
