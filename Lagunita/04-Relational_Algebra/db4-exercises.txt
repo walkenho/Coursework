@@ -1,0 +1,80 @@
+Existent Relations (keys are underlined):
+Person (_name_, age, gender)
+Frequents(_name_, _pizzeria_)
+Eats(_name_, _pizza_)
+Serves(_pizzeria_, _pizza_, price)
+
+Q1: Find all pizzas eaten by at least one female over the age of 20.
+A1: \project_{pizza} (\select_{gender = 'female' and age > 20} (Person \join Eats)); 
+
+Q2: Find the names of all females who eat at least one pizza served by Straw
+    Hat. (Note: The pizza need not be eaten at Straw Hat.) 
+A2: \project_{name} \select_{gender = 'female' and pizzeria = 'Straw
+    Hat'}(Person \join (Eats \join Serves));
+
+Q3: Find all pizzerias that serve at least one pizza for less than $10 that
+    either Amy or Fay (or both) eat. 
+A3: \project_{pizzeria} \select_{(name = 'Amy' or name = 'Fay') and price <
+    10} (Eats \join Serves); 
+
+Q4: Find all pizzerias that serve at least one pizza for less than $10 that
+    both Amy and Fay eat. 
+A4: \project_{pizzeria} (((\rename_{name1, pizza} \select_{name='Amy'} Eats)
+    \join (\rename_{name2, pizza} \select_{name='Fay'} Eats) ) \join
+    (\select_{price < 10} Serves)); 
+
+Q5: Find the names of all people who eat at least one pizza served by Dominos
+    but who do not frequent Dominos. 
+A6: \project_{name}(
+    \select_{pizzeria='Dominos'} (Eats \join Serves)   )
+    \diff  
+    \project_{name}(
+    Eats \join (\select_{pizzeria = 'Dominos'} Frequents) 
+    )
+
+Q6: Find all pizzas that are eaten only by people younger than 24, or that
+    cost less than $10 everywhere they're served. 
+A6: (
+    \project_{pizza} Serves
+    \diff
+    (\project_{pizza} \select_{age > 23} (Person \join Eats) )
+    )
+    \union
+    (
+    \project_{pizza} Serves
+    \diff
+    (\project_{pizza} \select_{price > 10} Serves)
+    );
+
+Q7: Find the age of the oldest person (or people) who eat mushroom pizza.
+    (This query is quite challenging; congratulations if you get it right.)
+A7: \project_{age}(
+    Person \join (
+    \project_{name} (Person \join \select_{pizza='mushroom'} Eats)
+    \diff
+    \rename_{name}
+    (
+    \project_{name1}
+    (
+    \rename_{name1, age1}(
+    \project_{name, age}(Person \join \select_{pizza='mushroom'} Eats))
+    \join_{ age1 < age2 }
+    \rename_{name2, age2}(
+    \project_{name, age}(Person \join \select_{pizza='mushroom'} Eats))
+    ))));
+
+Q8: Find all pizzerias that serve only pizzas eaten by people over 30.
+    (This query is quite challenging; congratulations if you get it right.)
+A8: \project_{pizzeria} Serves
+    \diff
+    \project_{pizzeria}
+    (
+    Serves \join
+    ( 
+    (\project_{pizza} Serves)
+    \diff 
+    (\project_{pizza} \select_{age > 30} (Person \join Eats) ) ) )
+
+Q9: Find all pizzerias that serve every pizza eaten by people over 30.
+(This query is very challenging; extra congratulations if you get it right.)
+
